@@ -6,7 +6,55 @@
     <title>Gerador de Recibos</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h2 {
+            margin-bottom: 24px;
+            color: #333;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 20px;
+            cursor: pointer;
+            background-color: #fafafa;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
         }
 
         #pdf-template {
@@ -81,6 +129,14 @@
             text-align: left;
         }
 
+        #recibo {
+            max-width: "90%";
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+
         .footer {
             margin-top: 15px;
         }
@@ -88,10 +144,11 @@
 </head>
 
 <body>
-    <h2>Gerador de Recibos</h2>
-    <input type="file" id="excelFile" accept=".xlsx, .xls" multiple />
-    <button onclick="processarExcel()">Gerar Recibos</button>
-
+    <div class="container">
+        <h2>Gerador de Recibos</h2>
+        <input type="file" id="excelFile" accept=".xlsx, .xls" multiple />
+        <button onclick="processarExcel()">Gerar Recibos</button>
+    </div>
     <div id="pdf-template">
         <div class="recibo-container">
             <div class="cabecalho">
@@ -247,12 +304,15 @@
             html2pdf().set({
                 margin: [10, 10, 10, 10],
                 filename: `recibo_${contadorNotas}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4' }
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             }).from(template).output('bloburl').then((url) => {
                 window.open(url, '_blank');
                 document.body.removeChild(template);
             });
+
+
         }
     </script>
 </body>
