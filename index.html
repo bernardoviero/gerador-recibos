@@ -25,6 +25,7 @@
         }
 
         .container {
+            margin-top: 150px;
             background: white;
             padding: 40px;
             border-radius: 12px;
@@ -285,12 +286,110 @@
     <script>
         let contadorNotas = localStorage.getItem('contadorNotas') || 1;
 
+        function solicitarDadosRecibo() {
+            return new Promise((resolve) => {
+                // Overlay
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = 0;
+                overlay.style.left = 0;
+                overlay.style.width = '100vw';
+                overlay.style.height = '100vh';
+                overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+                overlay.style.display = 'flex';
+                overlay.style.alignItems = 'center';
+                overlay.style.justifyContent = 'center';
+                overlay.style.zIndex = 9999;
+
+                // Container
+                const container = document.createElement('div');
+                container.style.background = '#fff';
+                container.style.padding = '20px 30px';
+                container.style.borderRadius = '12px';
+                container.style.boxShadow = '0 0 12px rgba(0,0,0,0.3)';
+                container.style.display = 'flex';
+                container.style.flexDirection = 'column';
+                container.style.alignItems = 'center';
+                container.style.gap = '14px';
+                container.style.minWidth = '280px';
+
+                const title = document.createElement('h2');
+                title.textContent = 'Preencha os dados do recibo';
+                title.style.marginBottom = '8px';
+                title.style.fontSize = '18px';
+
+                // Input: número do recibo (opcional)
+                const inputRecibo = document.createElement('input');
+                inputRecibo.type = 'text';
+                inputRecibo.placeholder = 'Nº do recibo (opcional)';
+                inputRecibo.maxLength = 4;
+                inputRecibo.style.fontSize = '16px';
+                inputRecibo.style.padding = '8px';
+                inputRecibo.style.width = '140px';
+                inputRecibo.style.textAlign = 'center';
+
+                inputRecibo.addEventListener('input', () => {
+                    inputRecibo.value = inputRecibo.value.replace(/\D/g, '').slice(0, 4);
+                });
+
+                // Input: mês/ano
+                const inputMesAno = document.createElement('input');
+                inputMesAno.type = 'text';
+                inputMesAno.placeholder = 'Mês/Ano (ex: 04/2025)';
+                inputMesAno.maxLength = 7;
+                inputMesAno.style.fontSize = '16px';
+                inputMesAno.style.padding = '8px';
+                inputMesAno.style.width = '140px';
+                inputMesAno.style.textAlign = 'center';
+
+                // Máscara MM/YYYY
+                inputMesAno.addEventListener('input', () => {
+                    let v = inputMesAno.value.replace(/\D/g, '');
+                    if (v.length >= 3) {
+                        v = v.slice(0, 2) + '/' + v.slice(2, 6);
+                    }
+                    inputMesAno.value = v.slice(0, 7);
+                });
+
+                // Botão finalizar
+                const button = document.createElement('button');
+                button.textContent = 'Finalizar';
+                button.style.padding = '8px 20px';
+                button.style.fontSize = '16px';
+                button.style.backgroundColor = '#4CAF50';
+                button.style.color = 'white';
+                button.style.border = 'none';
+                button.style.borderRadius = '6px';
+                button.style.cursor = 'pointer';
+
+                button.addEventListener('click', () => {
+                    const recibo = inputRecibo.value ? inputRecibo.value.padStart(4, '0') : null;
+                    const mesAno = inputMesAno.value;
+
+                    if (!/^(0[1-9]|1[0-2])\/20\d{2}$/.test(mesAno)) {
+                        alert('Digite um mês/ano válido no formato MM/YYYY');
+                        inputMesAno.focus();
+                        return;
+                    }
+
+                    document.body.removeChild(overlay);
+                    resolve({ recibo, mesAno });
+                });
+
+
+                container.appendChild(title);
+                container.appendChild(inputRecibo);
+                container.appendChild(inputMesAno);
+                container.appendChild(button);
+                overlay.appendChild(container);
+                document.body.appendChild(overlay);
+                inputRecibo.focus();
+            });
+        }
+
         async function processarExcel() {
-            const mesAno = prompt("Digite o mês/ano da competência (ex: 03/2025):");
-            if (!mesAno) {
-                alert("Mês/ano é obrigatório.");
-                return;
-            }
+            const { recibo, mesAno } = await solicitarDadosRecibo();
+            if (!mesAno) return;
 
             const files = document.getElementById('excelFile').files;
 
@@ -298,12 +397,15 @@
                 const dados = await readExcel(file);
                 if (dados) {
                     dados.mesAno = mesAno;
+                    dados.numeroRecibo = recibo || String(contadorNotas).padStart(4, '0');
                     await gerarPDF(dados);
-                    contadorNotas++;
+
+                    if (!recibo) {
+                        contadorNotas++;
+                        localStorage.setItem('contadorNotas', contadorNotas);
+                    }
                 }
             }
-
-            localStorage.setItem('contadorNotas', contadorNotas);
         }
 
         function readExcel(file) {
@@ -360,7 +462,9 @@
         Passo o presente recibo dando plena e geral quitação da quantia. Data: ${dataFormatada}.
       `;
 
-            template.querySelectorAll('.numero-recibo').forEach(el => el.textContent = contadorNotas);
+            template.querySelectorAll('.numero-recibo').forEach(el => {
+                el.textContent = dados.numeroRecibo;
+            });
             template.querySelectorAll('.cnpj').forEach(el => el.textContent = dados.cnpj);
             template.querySelectorAll('.endereco').forEach(el => el.textContent = dados.endereco);
             template.querySelectorAll('.cc-fixo').forEach(el => el.textContent = 'R$ ' + formatar(dados.ccFixo));
