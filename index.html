@@ -209,7 +209,7 @@
                 613 - REGIAO ECLES. CENTRO RIO GRANDENSE
             </div>
         </div>
-        <div class="recibo-container recibo-b" style="margin-top: 20mm;">
+        <div class="recibo-container recibo-b">
             <div class="cabecalho">
                 <div class="cabecalho-bloco logo">
                     <img src="logoquadrangular.jpg" alt="Logo">
@@ -346,6 +346,12 @@
             const dataAtual = new Date();
             const dataFormatada = dataAtual.toLocaleDateString('pt-BR');
 
+            const footerTexto = `
+        Recebi da fonte pagadora acima identificada a título de recebimentos de Contribuições à Região ref. ao mês ${dados.mesAno}
+        a importância de R$ ${formatar(dados.total)}.
+        Passo o presente recibo dando plena e geral quitação da quantia. Data: ${dataFormatada}.
+      `;
+
             template.querySelectorAll('.numero-recibo').forEach(el => el.textContent = contadorNotas);
             template.querySelectorAll('.cnpj').forEach(el => el.textContent = dados.cnpj);
             template.querySelectorAll('.endereco').forEach(el => el.textContent = dados.endereco);
@@ -353,14 +359,6 @@
             template.querySelectorAll('.outras-contribuicoes').forEach(el => el.textContent = 'R$ ' + formatar(dados.outras));
             template.querySelectorAll('.valor-total').forEach(el => el.textContent = 'R$ ' + formatar(dados.total));
             template.querySelectorAll('.texto-footer').forEach(el => el.textContent = footerTexto);
-
-
-            const footerTexto = `
-        Recebi da fonte pagadora acima identificada a título de recebimentos de Contribuições à Região ref. ao mês ${dados.mesAno}
-        a importância de R$ ${formatar(dados.total)}.
-        Passo o presente recibo dando plena e geral quitação da quantia. Data: ${dataFormatada}.
-      `;
-            template.querySelector('.texto-footer').textContent = footerTexto;
 
             html2pdf().set({
                 margin: [10, 10, 10, 10],
