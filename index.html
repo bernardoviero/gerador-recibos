@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Gerador de Recibos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #pdf-template {
+            display: none;
+            width: 210mm;
+            height: 297mm;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .recibo-container {
+            width: 100%;
+            border: 1px solid black;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .cabecalho {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .cabecalho-bloco {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .cabecalho .logo img {
+            height: 60px;
+        }
+
+        .cabecalho .centro {
+            text-align: center;
+            flex: 1;
+            margin: 0 20px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .cabecalho .recibo {
+            text-align: right;
+            font-weight: bold;
+            border: 1px solid #000;
+            padding: 5px 10px;
+        }
+
+        .info-container {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .secao {
+            margin-bottom: 10px;
+        }
+
+        .tabela {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .tabela th,
+        .tabela td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: left;
+        }
+
+        .footer {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Gerador de Recibos</h2>
+    <input type="file" id="excelFile" accept=".xlsx, .xls" multiple />
+    <button onclick="processarExcel()">Gerar Recibos</button>
+
+    <div id="pdf-template">
+        <div class="recibo-container">
+            <div class="cabecalho">
+                <div class="cabecalho-bloco logo">
+                    <img src="logoquadrangular.jpg" alt="Logo">
+                </div>
+                <div class="cabecalho-bloco centro">
+                    <strong>IGREJA DO EVANGELHO QUADRANGULAR</strong><br>
+                    CRUZADA NACIONAL DE EVANGELIZAÇÃO<br>
+                    <strong>Recibo de Pagamento de Contribuição</strong>
+                </div>
+                <div class="cabecalho-bloco recibo">
+                    RECIBO<br>
+                    <span class="numero-recibo" id="numero-recibo"></span>
+                </div>
+            </div>
+
+            <div class="info-container">
+                <div class="secao">
+                    <strong>Fonte Pagadora:</strong><br>
+                    Nome<br>
+                    CNPJ: <span class="cnpj"></span>
+                </div>
+
+                <div class="secao">
+                    <strong>Favorecido:</strong><br>
+                    Região: 613 - REGIAO ECLES. CENTRO RIO GRANDENSE<br>
+                    <strong>Endereço:</strong> <span class="endereco"></span><br>
+                    CNPJ: <span class="cnpj"></span><br>
+                    Arrecadação: None
+                </div>
+            </div>
+
+            <table class="tabela">
+                <tr>
+                    <th>Descrição</th>
+                    <th>Porcentagem</th>
+                    <th>Valor</th>
+                </tr>
+                <tr>
+                    <td>Contabilidade</td>
+                    <td>cc fixo</td>
+                    <td class="cc-fixo"></td>
+                </tr>
+                <tr>
+                    <td>Outras Contribuições</td>
+                    <td>4% + 1% + cc</td>
+                    <td class="outras-contribuicoes"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Total</strong></td>
+                    <td class="valor-total"></td>
+                </tr>
+            </table>
+
+            <div class="footer texto-footer"></div>
+
+            <div style="margin-top: 10px;">
+                613 - REGIAO ECLES. CENTRO RIO GRANDENSE
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        let contadorNotas = localStorage.getItem('contadorNotas') || 1;
+
+        async function processarExcel() {
+            const mesAno = prompt("Digite o mês/ano da competência (ex: 03/2025):");
+            if (!mesAno) {
+                alert("Mês/ano é obrigatório.");
+                return;
+            }
+
+            const files = document.getElementById('excelFile').files;
+
+            for (const file of files) {
+                const dados = await readExcel(file);
+                if (dados) {
+                    dados.mesAno = mesAno;
+                    await gerarPDF(dados);
+                    contadorNotas++;
+                }
+            }
+
+            localStorage.setItem('contadorNotas', contadorNotas);
+        }
+
+        function readExcel(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const workbook = XLSX.read(e.target.result, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const linhas = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                        const linhaValores = linhas[2];
+                        const endereco = linhas[3]?.[0] || '';
+                        const cnpj = linhas[4]?.[0] || '';
+
+                        const parseNumber = (str) => {
+                            if (!str) return 0;
+                            return parseFloat(str.toString().replace('.', '').replace(',', '.'));
+                        };
+
+                        const quatroPorcento = parseNumber(linhaValores[2]);
+                        const umPorcento = parseNumber(linhaValores[3]);
+                        const cc = parseNumber(linhaValores[4]);
+                        const ccFixo = parseNumber(linhaValores[5]);
+
+                        const outras = quatroPorcento + umPorcento + cc;
+                        const total = outras + ccFixo;
+
+                        resolve({ endereco, cnpj, ccFixo, outras, total });
+                    } catch (error) {
+                        console.error("Erro ao processar Excel:", error);
+                        alert("Erro na leitura do Excel. Verifique o formato!");
+                        reject(error);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function gerarPDF(dados) {
+            const template = document.getElementById('pdf-template').cloneNode(true);
+            template.style.display = 'block';
+
+            document.body.appendChild(template); // necessário para html2pdf
+
+            const formatar = (valor) => valor.toFixed(2).replace('.', ',');
+
+            const dataAtual = new Date();
+            const dataFormatada = dataAtual.toLocaleDateString('pt-BR');
+
+            template.querySelector('.numero-recibo').textContent = contadorNotas;
+            template.querySelectorAll('.cnpj').forEach(el => el.textContent = dados.cnpj);
+            template.querySelector('.endereco').textContent = dados.endereco;
+            template.querySelector('.cc-fixo').textContent = 'R$ ' + formatar(dados.ccFixo);
+            template.querySelector('.outras-contribuicoes').textContent = 'R$ ' + formatar(dados.outras);
+            template.querySelector('.valor-total').textContent = 'R$ ' + formatar(dados.total);
+
+            const footerTexto = `
+        Recebi da fonte pagadora acima identificada a título de recebimentos de Contribuições à Região ref. ao mês ${dados.mesAno}
+        a importância de R$ ${formatar(dados.total)}.
+        Passo o presente recibo dando plena e geral quitação da quantia. Data: ${dataFormatada}.
+      `;
+            template.querySelector('.texto-footer').textContent = footerTexto;
+
+            html2pdf().set({
+                margin: [10, 10, 10, 10],
+                filename: `recibo_${contadorNotas}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4' }
+            }).from(template).output('bloburl').then((url) => {
+                window.open(url, '_blank');
+                document.body.removeChild(template);
+            });
+        }
+    </script>
+</body>
+
+</html>
