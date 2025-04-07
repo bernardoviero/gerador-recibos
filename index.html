@@ -59,11 +59,10 @@
 
         #pdf-template {
             display: none;
-            width: 210mm;
-            height: 297mm;
-            padding: 20mm;
+            width: 190mm;
+            padding: 10mm;
             box-sizing: border-box;
-            position: relative;
+            font-size: 12px;
         }
 
         .recibo-container {
@@ -210,6 +209,66 @@
                 613 - REGIAO ECLES. CENTRO RIO GRANDENSE
             </div>
         </div>
+        <div class="recibo-container recibo-b" style="margin-top: 20mm;">
+            <div class="cabecalho">
+                <div class="cabecalho-bloco logo">
+                    <img src="logoquadrangular.jpg" alt="Logo">
+                </div>
+                <div class="cabecalho-bloco centro">
+                    <strong>IGREJA DO EVANGELHO QUADRANGULAR</strong><br>
+                    CRUZADA NACIONAL DE EVANGELIZAÇÃO<br>
+                    <strong>Recibo de Pagamento de Contribuição</strong>
+                </div>
+                <div class="cabecalho-bloco recibo">
+                    RECIBO<br>
+                    <span class="numero-recibo" id="numero-recibo"></span>
+                </div>
+            </div>
+
+            <div class="info-container">
+                <div class="secao">
+                    <strong>Fonte Pagadora:</strong><br>
+                    Nome<br>
+                    CNPJ: <span class="cnpj"></span>
+                </div>
+
+                <div class="secao">
+                    <strong>Favorecido:</strong><br>
+                    Região: 613 - REGIAO ECLES. CENTRO RIO GRANDENSE<br>
+                    <strong>Endereço:</strong> <span class="endereco"></span><br>
+                    CNPJ: <span class="cnpj"></span><br>
+                    Arrecadação: None
+                </div>
+            </div>
+
+            <table class="tabela">
+                <tr>
+                    <th>Descrição</th>
+                    <th>Porcentagem</th>
+                    <th>Valor</th>
+                </tr>
+                <tr>
+                    <td>Contabilidade</td>
+                    <td>cc fixo</td>
+                    <td class="cc-fixo"></td>
+                </tr>
+                <tr>
+                    <td>Outras Contribuições</td>
+                    <td>4% + 1% + cc</td>
+                    <td class="outras-contribuicoes"></td>
+                </tr>
+                <tr>
+                    <td colspan="2"><strong>Total</strong></td>
+                    <td class="valor-total"></td>
+                </tr>
+            </table>
+
+            <div class="footer texto-footer"></div>
+
+            <div style="margin-top: 10px;">
+                613 - REGIAO ECLES. CENTRO RIO GRANDENSE
+            </div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -287,12 +346,14 @@
             const dataAtual = new Date();
             const dataFormatada = dataAtual.toLocaleDateString('pt-BR');
 
-            template.querySelector('.numero-recibo').textContent = contadorNotas;
+            template.querySelectorAll('.numero-recibo').forEach(el => el.textContent = contadorNotas);
             template.querySelectorAll('.cnpj').forEach(el => el.textContent = dados.cnpj);
-            template.querySelector('.endereco').textContent = dados.endereco;
-            template.querySelector('.cc-fixo').textContent = 'R$ ' + formatar(dados.ccFixo);
-            template.querySelector('.outras-contribuicoes').textContent = 'R$ ' + formatar(dados.outras);
-            template.querySelector('.valor-total').textContent = 'R$ ' + formatar(dados.total);
+            template.querySelectorAll('.endereco').forEach(el => el.textContent = dados.endereco);
+            template.querySelectorAll('.cc-fixo').forEach(el => el.textContent = 'R$ ' + formatar(dados.ccFixo));
+            template.querySelectorAll('.outras-contribuicoes').forEach(el => el.textContent = 'R$ ' + formatar(dados.outras));
+            template.querySelectorAll('.valor-total').forEach(el => el.textContent = 'R$ ' + formatar(dados.total));
+            template.querySelectorAll('.texto-footer').forEach(el => el.textContent = footerTexto);
+
 
             const footerTexto = `
         Recebi da fonte pagadora acima identificada a título de recebimentos de Contribuições à Região ref. ao mês ${dados.mesAno}
