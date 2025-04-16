@@ -177,15 +177,15 @@
             <div class="info-container">
                 <div class="secao">
                     <strong>Fonte Pagadora:</strong><br>
-                    Nome<br>
-                    CNPJ: <span class="cnpj"></span>
+                    Nome: <span class="nome-fonte"></span><br>
+                    CNPJ: <span class="cnpj-fonte"></span>
                 </div>
 
                 <div class="secao">
                     <strong>Favorecido:</strong><br>
                     Região: 613 - REGIAO ECLES. CENTRO RIO GRANDENSE<br>
-                    <strong>Endereço:</strong> <span class="endereco"></span><br>
-                    CNPJ: <span class="cnpj"></span><br>
+                    <strong>Endereço:</strong> R. SÃO FRANCISCO, 345 - NOSSA SENHORA DO ROSÁRIO, SANTA MARIA.<br>
+                    CNPJ: <span class="cnpj-favorecido">62.955.505/0276-00</span><br>
                     Arrecadação: None
                 </div>
             </div>
@@ -237,15 +237,15 @@
             <div class="info-container">
                 <div class="secao">
                     <strong>Fonte Pagadora:</strong><br>
-                    Nome<br>
-                    CNPJ: <span class="cnpj"></span>
+                    Nome: <span class="nome-fonte"></span><br>
+                    CNPJ: <span class="cnpj-fonte"></span>
                 </div>
 
                 <div class="secao">
                     <strong>Favorecido:</strong><br>
                     Região: 613 - REGIAO ECLES. CENTRO RIO GRANDENSE<br>
-                    <strong>Endereço:</strong> <span class="endereco"></span><br>
-                    CNPJ: <span class="cnpj"></span><br>
+                    <strong>Endereço:</strong> R. SÃO FRANCISCO, 345 - NOSSA SENHORA DO ROSÁRIO, SANTA MARIA.<br>
+                    CNPJ: <span class="cnpj-favorecido">62.955.505/0276-00</span><br>
                     Arrecadação: None
                 </div>
             </div>
@@ -465,8 +465,8 @@
             template.querySelectorAll('.numero-recibo').forEach(el => {
                 el.textContent = dados.numeroRecibo;
             });
-            template.querySelectorAll('.cnpj').forEach(el => el.textContent = dados.cnpj);
-            template.querySelectorAll('.endereco').forEach(el => el.textContent = dados.endereco);
+            template.querySelectorAll('.cnpj-fonte').forEach(el => el.textContent = dados.cnpj);
+            template.querySelectorAll('.nome-fonte').forEach(el => el.textContent = dados.endereco);
             template.querySelectorAll('.cc-fixo').forEach(el => el.textContent = 'R$ ' + formatar(dados.ccFixo));
             template.querySelectorAll('.outras-contribuicoes').forEach(el => el.textContent = 'R$ ' + formatar(dados.outras));
             template.querySelectorAll('.valor-total').forEach(el => el.textContent = 'R$ ' + formatar(dados.total));
